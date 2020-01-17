@@ -66,12 +66,15 @@ crossBuildDir := $(srcDir)/build/$(arch)/build_$(config)
 
 cross-libponyrt:
 	$(SILENT)mkdir -p $(crossBuildDir)
-	$(SILENT)cd '$(crossBuildDir)' && CC="$(CC)" CXX="$(CXX)" cmake -B '$(crossBuildDir)' -S '$(srcDir)' -DPONY_CROSS_LIBPONYRT=true -DCMAKE_BUILD_TYPE=$(config) -DCMAKE_C_FLAGS="-march=$(arch) -mtune=$(tune)" -DCMAKE_CXX_FLAGS="-march=$(arch) -mtune=$(tune)" -DPONYC_VERSION=$(version) -DLL_FLAGS="-march=$(arch) -mcpu=$(tune)"
+	$(SILENT)cd '$(crossBuildDir)' && CC=$(CC) CXX=$(CXX) cmake -B '$(crossBuildDir)' -S '$(srcDir)' -DPONY_CROSS_LIBPONYRT=true -DCMAKE_BUILD_TYPE=$(config) -DCMAKE_C_FLAGS="-march=$(arch) -mtune=$(tune)" -DCMAKE_CXX_FLAGS="-march=$(arch) -mtune=$(tune)" -DPONYC_VERSION=$(version) -DLL_FLAGS="-O3;--mtriple=$(cross_triple)"
 	$(SILENT)cd '$(crossBuildDir)' && cmake --build '$(crossBuildDir)' --config $(config) --target all -- $(build_flags)
 
 test: all test-core test-stdlib-release test-examples
 
 test-ci: all test-check-version test-core test-stdlib-debug test-stdlib-release test-examples test-validate-grammar
+
+test-cross-ci: cross_args=--triple=$(cross_triple) --cpu=$(cross_cpu) --link-arch=$(cross_arch) --linker='$(cross_linker)'
+test-cross-ci: test-stdlib-debug test-stdlib-release
 
 test-check-version: all
 	$(SILENT)cd '$(outDir)' && ./ponyc --version
@@ -81,10 +84,10 @@ test-core: all
 	$(SILENT)cd '$(outDir)' && ./libponyc.tests --gtest_shuffle
 
 test-stdlib-release: all
-	$(SILENT)cd '$(outDir)' && ./ponyc -b stdlib-release --pic --checktree --verify ../../packages/stdlib && ./stdlib-release && rm stdlib-release
+	$(SILENT)cd '$(outDir)' && PONYPATH=.:$(PONYPATH) ./ponyc --verbose=3 -b stdlib-release --pic --checktree --verify $(cross_args) ../../packages/stdlib && $(cross_runner) ./stdlib-release && rm ./stdlib-release
 
 test-stdlib-debug: all
-	$(SILENT)cd '$(outDir)' && ./ponyc -d -b stdlib-debug --pic --strip --checktree --verify ../../packages/stdlib && ./stdlib-debug && rm stdlib-debug
+	$(SILENT)cd '$(outDir)' && PONYPATH=.:$(PONYPATH) ./ponyc --verbose=3 -d -b stdlib-debug --pic --strip --checktree --verify $(cross_args) ../../packages/stdlib && $(cross_runner) ./stdlib-debug && rm ./stdlib-debug
 
 test-examples: all
 	$(SILENT)cd '$(outDir)' && PONYPATH=.:$(PONYPATH) find ../../examples/*/* -name '*.pony' -print | xargs -n 1 dirname | sort -u | grep -v ffi- | xargs -n 1 -I {} ./ponyc -d -s --checktree -o {} {}

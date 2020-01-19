@@ -97,6 +97,7 @@ test-validate-grammar: all
 
 clean:
 	$(SILENT)([ -d '$(buildDir)' ] && cd '$(buildDir)' && cmake --build '$(buildDir)' --config $(config) --target clean) || true
+	$(SILENT)rm -rf '$(crossBuildDir)'
 	$(SILENT)rm -rf '$(buildDir)'
 	$(SILENT)rm -rf '$(outDir)'
 

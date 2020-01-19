@@ -12,11 +12,11 @@ ARG CROSS_TUNE=cortex-a9
 
 USER root
 
-RUN curl -L --output gcc-linearo.tar.xz "http://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/arm-linux-gnueabi/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabi.tar.xz" \
+RUN curl -L --output gcc-linearo.tar.xz "https://releases.linaro.org/components/toolchain/binaries/6.4-2018.05/arm-linux-gnueabi/gcc-linaro-6.4.1-2018.05-x86_64_arm-linux-gnueabi.tar.xz" \
  && tar xJf gcc-linearo.tar.xz -C /usr/local --strip 1 \
  && arm-linux-gnueabi-gcc --version \
  && rm gcc-linearo.tar.xz \
- && curl -L --output /usr/bin/qemu-arm-static https://github.com/multiarch/qemu-user-static/releases/download/v4.1.1-1/qemu-arm-static \
+ && curl -L --output /usr/bin/qemu-arm-static https://github.com/multiarch/qemu-user-static/releases/download/v2.12.0/qemu-arm-static \
  && chmod +x /usr/bin/qemu-arm-static
 
 RUN cmake --version

@@ -15,7 +15,7 @@ execute_process(
 project(Pony VERSION ${PONYC_VERSION} LANGUAGES C CXX)
 
 # Uncomment this to show build commands
-# set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # We require LLVM, Google Test and Google Benchmark
 if (NOT PONY_CROSS_LIBPONYRT)

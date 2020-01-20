@@ -7,7 +7,7 @@ jobs:
   # Jobs for building and testing with ponyc system installed cross-llvm
   cross-arm:
     docker:
-      - image: ponylang/ponyc-ci-cross-arm:20200119
+      - image: ponylang/ponyc-ci-cross-arm:20191225
         user: pony
     steps:
       - checkout

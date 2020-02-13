@@ -1,11 +1,32 @@
 config ?= release
 arch ?= native
 tune ?= generic
-version ?= $(shell cat VERSION)
 build_flags ?= -j2
 llvm_archs ?= X86
 llvm_config ?= Release
 llc_arch ?= x86-64
+
+ifndef version
+  version := $(shell cat VERSION)
+  ifneq ($(wildcard .git),)
+    sha := $(shell git rev-parse --short HEAD)
+    tag := $(version)-$(sha)
+  else
+    tag := $(version)
+  endif
+else
+  tag := $(version)
+endif
+
+symlink := yes
+ifdef DESTDIR
+	prefix := $(DESTDIR)
+	ponydir := $(prefix)
+	symlink := no
+else
+	prefix ?= /usr/local
+	ponydir ?= $(prefix)/lib/pony/$(tag)
+endif
 
 # By default, CC is cc and CXX is g++
 # So if you use standard alternatives on many Linuxes
@@ -104,3 +125,34 @@ clean:
 
 distclean:
 	$(SILENT)([ -d build ] && rm -rf build) || true
+
+install: build
+	echo $(symlink)
+	@mkdir -p $(ponydir)/bin
+	@mkdir -p $(ponydir)/lib/$(arch)
+	@mkdir -p $(ponydir)/include/pony/detail
+	$(SILENT)if [ -f $(outDir)/libponyrt.a ]; then cp $(outDir)/libponyrt.a $(ponydir)/lib/$(arch); fi
+	$(SILENT)if [ -f $(ponydir)/lib/$(arch)/libponyrt.a ]; then ln -s -f $(ponydir)/lib/$(arch)/libponyrt.a $(ponydir)/bin/libponyrt.a; fi
+	$(SILENT)if [ -f $(outDir)/libponyrt-pic.a ]; then cp $(outDir)/libponyrt-pic.a $(ponydir)/lib/$(arch); fi
+	$(SILENT)if [ -f $(ponydir)/lib/$(arch)/libponyrt-pic.a ]; then ln -s -f $(ponydir)/lib/$(arch)/libponyrt-pic.a $(ponydir)/bin/libponyrt-pic.a; fi
+	$(SILENT)cp $(outDir)/ponyc $(ponydir)/bin
+	$(SILENT)cp src/libponyrt/pony.h $(ponydir)/include
+	$(SILENT)cp src/common/pony/detail/atomics.h $(ponydir)/include/pony/detail
+	$(SILENT)cp -r packages $(ponydir)/
+ifeq ($(symlink),yes)
+	@mkdir -p $(prefix)/bin
+	@mkdir -p $(prefix)/lib
+	@mkdir -p $(prefix)/include/pony/detail
+	$(SILENT)ln -s -f $(ponydir)/bin/ponyc $(prefix)/bin/ponyc
+	$(SILENT)if [ -f $(ponydir)/lib/$(arch)/libponyrt.a ]; then ln -s -f $(ponydir)/lib/$(arch)/libponyrt.a $(prefix)/bin/libponyrt.a; fi
+	$(SILENT)if [ -f $(ponydir)/lib/$(arch)/libponyrt-pic.a ]; then ln -s -f $(ponydir)/lib/$(arch)/libponyrt-pic.a $(prefix)/bin/libponyrt-pic.a; fi
+	$(SILENT)ln -s -f $(ponydir)/include/pony.h $(prefix)/include/pony.h
+	$(SILENT)ln -s -f $(ponydir)/include/pony/detail/atomics.h $(prefix)/include/pony/detail/atomics.h
+endif
+
+uninstall:
+	-$(SILENT)rm -rf $(ponydir) ||:
+	-$(SILENT)rm -f $(prefix)/bin/ponyc ||:
+	-$(SILENT)rm -f $(prefix)/bin/libponyrt*.a ||:
+	-$(SILENT)rm -f $(prefix)/include/pony.h ||:
+	-$(SILENT)rm -rf $(prefix)/include/pony ||:

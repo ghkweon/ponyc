@@ -1,8 +1,6 @@
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
 
-file(STRINGS "../VERSION" VERSION_NUMBER)
-
-project(ponyclibs VERSION ${VERSION_NUMBER} LANGUAGES C CXX)
+project(ponyclibs VERSION ${PONYC_PROJECT_VERSION} LANGUAGES C CXX)
 
 include(ExternalProject)
 

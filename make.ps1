@@ -24,6 +24,8 @@
     $Version = "default"
 )
 
+$srcDir = Split-Path $script:MyInvocation.MyCommand.Path
+
 switch ($Version)
 {
     "default" { $Version = (Get-Content $srcDir\VERSION) + "-" + (git rev-parse --short --verify HEAD^) }
@@ -64,8 +66,6 @@ if ($Generator -eq "default")
 {
     $Generator = cmake --help | Where-Object { $_ -match '\*\s+(.*\S)\s+(\[arch\])?\s+=' } | Foreach-Object { $Matches[1].Trim() } | Select-Object -First 1
 }
-
-$srcDir = Split-Path $script:MyInvocation.MyCommand.Path
 
 if ($Generator -match 'Visual Studio')
 {
@@ -108,7 +108,7 @@ elseif (![System.IO.Path]::IsPathRooted($InstallPath))
     $InstallPath = Join-Path -Path $srcDir -ChildPath $InstallPath
 }
 
-Write-Output "make.ps1 $Command -Config $Config -Generator `"$Generator`" -InstallPath `"$InstallPath`"" -Version `"$Version`"
+Write-Output "make.ps1 $Command -Config $Config -Generator `"$Generator`" -InstallPath `"$InstallPath`" -Version `"$Version`""
 
 if (($Command.ToLower() -ne "libs") -and ($Command.ToLower() -ne "distclean") -and !(Test-Path -Path $libsDir))
 {
@@ -164,7 +164,7 @@ switch ($Command.ToLower())
         if (Test-Path -Path $libsDir)
         {
             Write-Output "Removing $libsDir..."
-            Remove-Item -Path $libsDir -Recurse
+            Remove-Item -Path $libsDir -Recurse -Force
         }
         break
     }
@@ -172,12 +172,12 @@ switch ($Command.ToLower())
     {
         if ($Architecture.Length -gt 0)
         {
-            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE=`"$Config`"" -DPONYC_VERSION=`"$Version`"
+            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$InstallPath`" -DCMAKE_BUILD_TYPE=`"$Config`" -DPONYC_VERSION=`"$Version`""
             & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" --no-warn-unused-cli
         }
         else
         {
-            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE=`"$Config`"" -DPONYC_VERSION=`"$Version`"
+            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$InstallPath`" -DCMAKE_BUILD_TYPE=`"$Config`" -DPONYC_VERSION=`"$Version`""
             & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" --no-warn-unused-cli
         }
         $err = $LastExitCode
@@ -194,8 +194,11 @@ switch ($Command.ToLower())
     }
     "clean"
     {
-        Write-Output "cmake.exe --build `"buildDir`" --config $Config --target clean"
-        & cmake.exe --build "$buildDir" --config $Config --target clean
+        if (Test-Path $buildDir)
+        {
+            Write-Output "cmake.exe --build `"buildDir`" --config $Config --target clean"
+            & cmake.exe --build "$buildDir" --config $Config --target clean
+        }
 
         if (Test-Path $outDir)
         {
@@ -297,7 +300,6 @@ switch ($Command.ToLower())
             Write-Output "Test suites failed: ($failedTestSuitesList)"
             exit $numTestSuitesFailed
         }
-
         break
     }
     "install"
@@ -306,7 +308,6 @@ switch ($Command.ToLower())
         & cmake.exe --build "$buildDir" --config $Config --target install
         $err = $LastExitCode
         if ($err -ne 0) { throw "Error: exit code $err" }
-
         break
     }
     "package"
@@ -318,6 +319,6 @@ switch ($Command.ToLower())
     }
     default
     {
-        throw "Unknown command '$Command'; use: {libs, cleanlibs, configure, build, clean, distclean, test, install}"
+        throw "Unknown command '$Command'. use: {libs, cleanlibs, configure, build, clean, test, install, package, distclean}"
     }
 }

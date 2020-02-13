@@ -1,4 +1,6 @@
-project(libponyrt VERSION ${PONYC_VERSION} LANGUAGES C CXX)
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
+
+project(libponyrt VERSION ${PONYC_PROJECT_VERSION} LANGUAGES C CXX)
 
 set(_ll_src "${CMAKE_SOURCE_DIR}/src/libponyrt/lang/except_try_catch.ll")
 set(_ll_obj "${CMAKE_BINARY_DIR}/except_try_catch.o")

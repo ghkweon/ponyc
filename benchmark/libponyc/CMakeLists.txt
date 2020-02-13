@@ -1,4 +1,6 @@
-project (libponyc.benchmarks VERSION ${PONYC_VERSION} LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
+
+project(libponyc.benchmarks VERSION ${PONYC_PROJECT_VERSION} LANGUAGES CXX)
 
 add_executable(libponyc.benchmarks
     gbenchmark_main.cc

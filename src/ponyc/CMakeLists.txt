@@ -1,4 +1,6 @@
-project(ponyc VERSION ${PONYC_VERSION} LANGUAGES C CXX)
+cmake_minimum_required(VERSION 3.11 FATAL_ERROR)
+
+project(ponyc VERSION ${PONYC_PROJECT_VERSION} LANGUAGES C CXX)
 
 add_executable(ponyc main.c)
 

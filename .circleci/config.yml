@@ -40,10 +40,10 @@ jobs:
       # restore or build libs
       - restore_cache:
           keys:
-            - libs-cache-cross-armhf-{{ checksum "lib/CMakeLists.txt" }}
+            - libs-cache-cross-arm-{{ checksum "lib/CMakeLists.txt" }}
       - run: if [ ! -d build/libs ]; then make libs llvm_archs="X86;ARM"; fi
       - save_cache:
-          key: libs-cache-cross-armhf-{{ checksum "lib/CMakeLists.txt" }}
+          key: libs-cache-cross-arm-{{ checksum "lib/CMakeLists.txt" }}
           paths:
             - build/libs
       # build and test for x86_64 first
@@ -66,10 +66,10 @@ jobs:
       # restore or build libs
       - restore_cache:
           keys:
-            - libs-cache-cross-aarch64-{{ checksum "lib/CMakeLists.txt" }}
+            - libs-cache-cross-aarch64-2-{{ checksum "lib/CMakeLists.txt" }}
       - run: if [ ! -d build/libs ]; then make libs llvm_archs="X86;ARM;AArch64"; fi
       - save_cache:
-          key: libs-cache-cross-aarch64-{{ checksum "lib/CMakeLists.txt" }}
+          key: libs-cache-cross-aarch64-2-{{ checksum "lib/CMakeLists.txt" }}
           paths:
             - build/libs
       # build and test for x86_64 first

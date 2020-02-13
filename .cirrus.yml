@@ -291,28 +291,29 @@ task:
   test_stdlib_cross_script:
     - make test-cross-ci PONYPATH=../armv7-a/release cross_triple=arm-unknown-linux-gnueabihf cross_arch=armv7-a cross_cpu=cortex-a9 cross_linker=arm-linux-gnueabihf-gcc cross_runner="qemu-arm-static -cpu cortex-a9 -L /usr/local/arm-linux-gnueabihf/libc"
 
-task:
-  only_if: $CIRRUS_PR != ''
+# AArch64 has been broken for some time
+# task:
+#   only_if: $CIRRUS_PR != ''
 
-  container:
-    image: ponylang/ponyc-ci-cross-aarch64:20200212
-    cpu: 8
-    memory: 24
+#   container:
+#     image: ponylang/ponyc-ci-cross-aarch64:20200212
+#     cpu: 8
+#     memory: 24
 
-  name: "PR: cross-compile: aarch64-unknown-linux-gnu"
+#   name: "PR: cross-compile: aarch64-unknown-linux-gnu"
 
-  libs_cache:
-    folder: build/libs
-    fingerprint_script: echo "`md5sum lib/CMakeLists.txt` cross aarch64"
-    populate_script: make libs build_flags=-j8 llvm_archs="X86;ARM;AArch64"
+#   libs_cache:
+#     folder: build/libs
+#     fingerprint_script: echo "`md5sum lib/CMakeLists.txt` cross aarch64"
+#     populate_script: make libs build_flags=-j8 llvm_archs="X86;ARM;AArch64"
 
-  configure_script:
-    - make configure
-  build_script:
-    - make build build_flags=-j8
-  test_script:
-    - make test-ci
-  libponyrt_cross_script:
-    - make cross-libponyrt CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ arch=armv8-a tune=cortex-a53 llc_arch=arm
-  test_stdlib_cross_script:
-    - make test-cross-ci PONYPATH=../armv8-a/release cross_triple=aarch64-unknown-linux-gnu cross_arch=armv8-a cross_cpu=cortex-a53 cross_linker=aarch64-linux-gnu-gcc cross_runner="qemu-aarch64-static -cpu cortex-a53 -L /usr/local/aarch64-linux-gnu/libc"
+#   configure_script:
+#     - make configure
+#   build_script:
+#     - make build build_flags=-j8
+#   test_script:
+#     - make test-ci
+#   libponyrt_cross_script:
+#     - make cross-libponyrt CC=aarch64-linux-gnu-gcc CXX=aarch64-linux-gnu-g++ arch=armv8-a tune=cortex-a53 llc_arch=arm
+#   test_stdlib_cross_script:
+#     - make test-cross-ci PONYPATH=../armv8-a/release cross_triple=aarch64-unknown-linux-gnu cross_arch=armv8-a cross_cpu=cortex-a53 cross_linker=aarch64-linux-gnu-gcc cross_runner="qemu-aarch64-static -cpu cortex-a53 -L /usr/local/aarch64-linux-gnu/libc"

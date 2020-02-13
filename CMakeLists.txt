@@ -74,8 +74,8 @@ if (MSVC)
         $<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=0>
     )
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Werror -Wconversion -Wno-sign-conversion -Wextra -Wall -fpic")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fno-rtti -fexceptions -fpic")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Werror -Wconversion -Wno-sign-conversion -Wextra -Wall -fpic -fexceptions")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fno-rtti -fpic -fexceptions")
     add_link_options(-rdynamic)
 endif (MSVC)
 

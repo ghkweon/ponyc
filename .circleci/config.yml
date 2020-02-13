@@ -67,7 +67,7 @@ jobs:
       - restore_cache:
           keys:
             - libs-cache-cross-aarch64-{{ checksum "lib/CMakeLists.txt" }}
-      - run: if [ ! -d build/libs ]; then make libs llvm_archs="X86;ARM"; fi
+      - run: if [ ! -d build/libs ]; then make libs llvm_archs="X86;ARM;AArch64"; fi
       - save_cache:
           key: libs-cache-cross-aarch64-{{ checksum "lib/CMakeLists.txt" }}
           paths:
@@ -105,11 +105,10 @@ workflows:
               ignore:
                 - master
                 - release
-      # Disabled because not supported at present
-      # - cross-aarch64:
-      #     context: org-global
-      #     filters:
-      #       branches:
-      #         ignore:
-      #           - master
-      #           - release
+      - cross-aarch64:
+          context: org-global
+          filters:
+            branches:
+              ignore:
+                - master
+                - release

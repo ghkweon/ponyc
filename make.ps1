@@ -24,6 +24,13 @@
     $Version = "default"
 )
 
+switch ($Version)
+{
+    "default" { $Version = (Get-Content $srcDir\VERSION) + "-" + (git rev-parse --short --verify HEAD^) }
+    "nightly" { $Version = "nightly" + (Get-Date).ToString("yyyyMMdd") }
+    "date" { $Version = (Get-Date).ToString("yyyyMMdd") }
+}
+
 # Sanitize config to conform to CMake build configs.
 switch ($Config.ToLower())
 {
@@ -101,7 +108,7 @@ elseif (![System.IO.Path]::IsPathRooted($InstallPath))
     $InstallPath = Join-Path -Path $srcDir -ChildPath $InstallPath
 }
 
-Write-Output "make.ps1 $Command -Config $Config -Generator `"$Generator`" -InstallPath `"$InstallPath`""
+Write-Output "make.ps1 $Command -Config $Config -Generator `"$Generator`" -InstallPath `"$InstallPath`"" -Version `"$Version`"
 
 if (($Command.ToLower() -ne "libs") -and ($Command.ToLower() -ne "distclean") -and !(Test-Path -Path $libsDir))
 {
@@ -165,13 +172,13 @@ switch ($Command.ToLower())
     {
         if ($Architecture.Length -gt 0)
         {
-            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE=`"$Config`""
-            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE="$Config" --no-warn-unused-cli
+            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE=`"$Config`"" -DPONYC_VERSION=`"$Version`"
+            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" --no-warn-unused-cli
         }
         else
         {
-            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE=`"$Config`""
-            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE="$Config" --no-warn-unused-cli
+            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE=`"$Config`"" -DPONYC_VERSION=`"$Version`"
+            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" --no-warn-unused-cli
         }
         $err = $LastExitCode
         if ($err -ne 0) { throw "Error: exit code $err" }
@@ -304,12 +311,6 @@ switch ($Command.ToLower())
     }
     "package"
     {
-        switch ($Version)
-        {
-            "default" { $Version = (Get-Content $srcDir\VERSION) + "-" + (git rev-parse --short --verify HEAD^) }
-            "date" { $Version = (Get-Date).ToString("yyyyMMdd") }
-        }
-
         $package = "ponyc-x86_64-pc-windows-msvc-$Version-$Config.zip"
         Write-Output "Creating $buildDir\$package"
 

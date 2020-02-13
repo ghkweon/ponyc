@@ -6,7 +6,7 @@ task:
   only_if: $CIRRUS_API_CREATED == "true"
 
   container:
-    image: ponylang/ponyc-ci-x86-64-unknown-linux-gnu-builder:20191105
+    image: ponylang/ponyc-ci-x86-64-unknown-linux-gnu-builder:20191106
     cpu: 8
     memory: 24
 
@@ -14,6 +14,11 @@ task:
 
   environment:
     CLOUDSMITH_API_KEY: ENCRYPTED[!2cb1e71c189cabf043ac3a9030b3c7708f9c4c983c86d07372ae58ad246a07c54e40810d038d31c3cf3ed8888350caca!]
+
+  libs_cache:
+    folder: build/libs
+    fingerprint_script: echo "`md5sum lib/CMakeLists.txt` glibc"
+    populate_script: make libs build_flags=-j8
 
   nightly_script:
     - bash .ci-scripts/x86-64-unknown-linux-gnu-nightly.bash ${CLOUDSMITH_API_KEY}
@@ -23,7 +28,7 @@ task:
   only_if: $CIRRUS_API_CREATED == "true"
 
   container:
-    image: ponylang/ponyc-ci-x86-64-unknown-linux-musl-builder:20191105
+    image: ponylang/ponyc-ci-x86-64-unknown-linux-musl-builder:20191106
     cpu: 8
     memory: 24
 
@@ -31,6 +36,11 @@ task:
 
   environment:
     CLOUDSMITH_API_KEY: ENCRYPTED[!2cb1e71c189cabf043ac3a9030b3c7708f9c4c983c86d07372ae58ad246a07c54e40810d038d31c3cf3ed8888350caca!]
+
+  libs_cache:
+    folder: build/libs
+    fingerprint_script: echo "`md5sum lib/CMakeLists.txt` musl"
+    populate_script: make libs build_flags=-j8
 
   nightly_script:
     - bash .ci-scripts/x86-64-unknown-linux-musl-nightly.bash ${CLOUDSMITH_API_KEY}
@@ -46,6 +56,11 @@ task:
   environment:
     CLOUDSMITH_API_KEY: ENCRYPTED[!2cb1e71c189cabf043ac3a9030b3c7708f9c4c983c86d07372ae58ad246a07c54e40810d038d31c3cf3ed8888350caca!]
 
+  libs_cache:
+    folder: build/libs
+    fingerprint_script: echo "`md5 lib/CMakeLists.txt` macos"
+    populate_script: make libs build_flags=-j8
+
   install_script:
     - brew install coreutils python
     - pip3 install --upgrade cloudsmith-cli
@@ -53,6 +68,38 @@ task:
   nightly_script:
     - export TZ=utc
     - bash .ci-scripts/x86-64-apple-darwin-nightly.bash ${CLOUDSMITH_API_KEY}
+
+task:
+  only_if: $CIRRUS_API_CREATED == "true"
+
+  windows_container:
+    dockerfile: .ci-dockerfiles/windowsservercore/Dockerfile
+    os_version: 2019
+    cpu: 8
+    memory: 24
+
+  name: "nightly: x86-64-pc-windows-msvc"
+
+  environment:
+    CLOUDSMITH_API_KEY: ENCRYPTED[!2cb1e71c189cabf043ac3a9030b3c7708f9c4c983c86d07372ae58ad246a07c54e40810d038d31c3cf3ed8888350caca!]
+
+  libs_cache:
+    folder: build/libs
+    fingerprint_script: powershell.exe -NoLogo -Command "(Get-FileHash -Path lib\CMakeLists.txt).Hash"
+    populate_script:
+      - ps: .\make.ps1 libs -Generator "Visual Studio 16 2019"
+
+  config_script:
+    - ps: .\make.ps1 configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version nightly
+  build_script:
+    - ps: .\make.ps1 build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version nightly
+  install_script:
+    - ps: .\make.ps1 install -Config Release -InstallPath "build\install\release"
+  package_script:
+    - ps: .\make.ps1 package -Config Release -InstallPath "build\install\release" -Version nightly
+  upload_script:
+    - ps: $version = (Get-Date).ToString("yyyyMMdd"); cloudsmith push raw --version $version --api-key ${CLOUDSMITH_API_KEY} --summary "Pony compiler" --description "https://github.com/ponylang/ponyc" ponylang/nightlies build\ponyc-x86_64-pc-windows-msvc-nightly-$version-Release.zip
+
 
 #
 # Release build tasks
@@ -62,7 +109,7 @@ task:
   only_if: $CIRRUS_TAG =~ '^\d+\.\d+\.\d+$'
 
   container:
-    image: ponylang/ponyc-ci-x86-64-unknown-linux-gnu-builder:20191105
+    image: ponylang/ponyc-ci-x86-64-unknown-linux-gnu-builder:20191106
     cpu: 8
     memory: 24
 
@@ -71,6 +118,11 @@ task:
   environment:
     CLOUDSMITH_API_KEY: ENCRYPTED[!2cb1e71c189cabf043ac3a9030b3c7708f9c4c983c86d07372ae58ad246a07c54e40810d038d31c3cf3ed8888350caca!]
 
+  libs_cache:
+    folder: build/libs
+    fingerprint_script: echo "`md5sum lib/CMakeLists.txt` glibc"
+    populate_script: make libs build_flags=-j8
+
   release_script:
     - bash .ci-scripts/x86-64-unknown-linux-gnu-release.bash ${CLOUDSMITH_API_KEY}
 
@@ -78,7 +130,7 @@ task:
   only_if: $CIRRUS_TAG =~ '^\d+\.\d+\.\d+$'
 
   container:
-    image: ponylang/ponyc-ci-x86-64-unknown-linux-musl-builder:20191105
+    image: ponylang/ponyc-ci-x86-64-unknown-linux-musl-builder:20191106
     cpu: 8
     memory: 24
 
@@ -86,6 +138,11 @@ task:
 
   environment:
     CLOUDSMITH_API_KEY: ENCRYPTED[!2cb1e71c189cabf043ac3a9030b3c7708f9c4c983c86d07372ae58ad246a07c54e40810d038d31c3cf3ed8888350caca!]
+
+  libs_cache:
+    folder: build/libs
+    fingerprint_script: echo "`md5sum lib/CMakeLists.txt` musl"
+    populate_script: make libs build_flags=-j8
 
   release_script:
     - bash .ci-scripts/x86-64-unknown-linux-musl-release.bash ${CLOUDSMITH_API_KEY}
@@ -101,12 +158,48 @@ task:
   environment:
     CLOUDSMITH_API_KEY: ENCRYPTED[!2cb1e71c189cabf043ac3a9030b3c7708f9c4c983c86d07372ae58ad246a07c54e40810d038d31c3cf3ed8888350caca!]
 
+  libs_cache:
+    folder: build/libs
+    fingerprint_script: echo "`md5 lib/CMakeLists.txt` macos"
+    populate_script: make libs build_flags=-j8
+
   install_script:
     - brew install coreutils python
     - pip3 install --upgrade cloudsmith-cli
 
   release_script:
     - bash .ci-scripts/x86-64-apple-darwin-release.bash ${CLOUDSMITH_API_KEY}
+
+task:
+  only_if: $CIRRUS_TAG =~ '^\d+\.\d+\.\d+$'
+
+  windows_container:
+    dockerfile: .ci-dockerfiles/windowsservercore/Dockerfile
+    os_version: 2019
+    cpu: 8
+    memory: 24
+
+  name: "nightly: x86-64-pc-windows-msvc"
+
+  environment:
+    CLOUDSMITH_API_KEY: ENCRYPTED[!2cb1e71c189cabf043ac3a9030b3c7708f9c4c983c86d07372ae58ad246a07c54e40810d038d31c3cf3ed8888350caca!]
+
+  libs_cache:
+    folder: build/libs
+    fingerprint_script: powershell.exe -NoLogo -Command "(Get-FileHash -Path lib\CMakeLists.txt).Hash"
+    populate_script:
+      - ps: .\make.ps1 libs -Generator "Visual Studio 16 2019"
+
+  config_script:
+    - ps: .\make.ps1 configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version (Get-Content .\VERSION)
+  build_script:
+    - ps: .\make.ps1 build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version (Get-Content .\VERSION)
+  install_script:
+    - ps: .\make.ps1 install -Config Release -InstallPath "build\install\release"
+  package_script:
+    - ps: .\make.ps1 package -Config Release -InstallPath "build\install\release" -Version (Get-Content .\VERSION)
+  upload_script:
+    - ps: $version = (Get-Content .\VERSION); cloudsmith push raw --version $version --api-key ${CLOUDSMITH_API_KEY} --summary "Pony compiler" --description "https://github.com/ponylang/ponyc" ponylang/releases build\ponyc-x86_64-pc-windows-msvc-$version-Release.zip
 
 #
 # Pull Request Tasks
@@ -223,21 +316,14 @@ task:
     folder: build/libs
     fingerprint_script: powershell.exe -NoLogo -Command "(Get-FileHash -Path lib\CMakeLists.txt).Hash"
     populate_script:
-      - powershell.exe -NoLogo -File .\make.ps1 libs -Generator "Visual Studio 16 2019"
+      - ps: .\make.ps1 libs -Generator "Visual Studio 16 2019"
 
   config_script:
-    - powershell.exe -NoLogo -File .\make.ps1 configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
+    - ps: .\make.ps1 configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
   build_script:
-    - powershell.exe -NoLogo -File .\make.ps1 build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
+    - ps: .\make.ps1 build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
   test_script:
-    - powershell.exe -NoLogo -File .\make.ps1 test -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
-
-    # install_script: powershell.exe -NoLogo -File .\make.ps1 install -Config Release -InstallPath "build\install\release"
-    # package_script: powershell.exe -NoLogo -File .\make.ps1 package -Config Release -InstallPath "build\install\release" -Version date
-    # upload_script: powershell.exe -NoLogo -Command "$version = (Get-Date).ToString(""""yyyyMMdd""""); & cloudsmith push raw --version $version --api-key 1cc732891a064c6542e3632a6ee281b69dbdce18 --summary """"Pony compiler"""" --description """"https://github.com/ponylang/ponyc"""" main-pony/pony-nightlies build\ponyc-x86_64-pc-windows-msvc-$version.zip
-
-  binary_artifacts:
-    path: build/*.zip
+    - ps: .\make.ps1 test -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
 
 task:
   only_if: $CIRRUS_PR != ''

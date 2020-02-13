@@ -5,6 +5,7 @@ version ?= $(shell cat VERSION)
 build_flags ?= -j2
 llvm_archs ?= X86
 llvm_config ?= Release
+llc_arch ?= x86-64
 
 # By default, CC is cc and CXX is g++
 # So if you use standard alternatives on many Linuxes
@@ -66,7 +67,7 @@ crossBuildDir := $(srcDir)/build/$(arch)/build_$(config)
 
 cross-libponyrt:
 	$(SILENT)mkdir -p $(crossBuildDir)
-	$(SILENT)cd '$(crossBuildDir)' && CC=$(CC) CXX=$(CXX) cmake -B '$(crossBuildDir)' -S '$(srcDir)' -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=$(arch) -DCMAKE_C_COMPILER=$(CC) -DCMAKE_CXX_COMPILER=$(CXX) -DPONY_CROSS_LIBPONYRT=true -DCMAKE_BUILD_TYPE=$(config) -DCMAKE_C_FLAGS="-march=$(arch) -mtune=$(tune)" -DCMAKE_CXX_FLAGS="-march=$(arch) -mtune=$(tune)" -DPONYC_VERSION=$(version) -DLL_FLAGS="-O3;-mcpu=$(arch)"
+	$(SILENT)cd '$(crossBuildDir)' && CC=$(CC) CXX=$(CXX) cmake -B '$(crossBuildDir)' -S '$(srcDir)' -DCMAKE_SYSTEM_NAME=Linux -DCMAKE_SYSTEM_PROCESSOR=$(arch) -DCMAKE_C_COMPILER=$(CC) -DCMAKE_CXX_COMPILER=$(CXX) -DPONY_CROSS_LIBPONYRT=true -DCMAKE_BUILD_TYPE=$(config) -DCMAKE_C_FLAGS="-march=$(arch) -mtune=$(tune)" -DCMAKE_CXX_FLAGS="-march=$(arch) -mtune=$(tune)" -DPONYC_VERSION=$(version) -DLL_FLAGS="-O3;-march=$(llc_arch);-mcpu=$(tune)"
 	$(SILENT)cd '$(crossBuildDir)' && cmake --build '$(crossBuildDir)' --config $(config) --target libponyrt -- $(build_flags)
 
 test: all test-core test-stdlib-release test-examples

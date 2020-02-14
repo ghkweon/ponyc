@@ -103,19 +103,12 @@ Link-time optimizations provide a performance improvement. You should strongly c
 
 - If you are on MacOS, turning on LTO means that if you upgrade your version of XCode, you will have to rebuild your Pony compiler. You won't be able to link Pony programs if there is a mismatch between the version of XCode used to build the Pony runtime and the version of XCode you currently have installed.
 
-You can enable LTO when building the compiler in release mode. There are slight differences between platforms so you'll need to do a manual setup. LTO is enabled by setting `lto` to `yes` in the build command line like:
+LTO is enabled by setting `lto` to `yes` in the build command line like:
 
 ```bash
-make lto=yes
+make configure lto=yes
+make build
 ```
-
-If the build fails, you have to specify the LTO plugin for your compiler in the `LTO_PLUGIN` variable. For example:
-
-```bash
-make LTO_PLUGIN=/usr/lib/LLVMgold.so
-```
-
-Refer to your compiler documentation for the plugin to use in your case.
 
 ## runtime-bitcode
 

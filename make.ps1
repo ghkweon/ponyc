@@ -13,7 +13,7 @@
 
     [Parameter(HelpMessage="The architecture to use for compiling, e.g. `"x64`"")]
     [string]
-    $Architecture = "x64",
+    $Arch = "x64",
 
     [Parameter(HelpMessage="The location to install to")]
     [string]
@@ -22,6 +22,10 @@
     [Parameter(HelpMessage="The version to use when packaging")]
     [string]
     $Version = "default"
+
+    [Parameter(HelpMessage="Whether or not to turn on LTO")]
+    [bool]
+    $Lto = false
 )
 
 $srcDir = Split-Path $script:MyInvocation.MyCommand.Path
@@ -117,7 +121,7 @@ if (($Command.ToLower() -ne "libs") -and ($Command.ToLower() -ne "distclean") -a
 
 if ($Generator.Contains("Win64") -or $Generator.Contains("Win32"))
 {
-    $Architecture = ""
+    $Arch = ""
 }
 
 switch ($Command.ToLower())
@@ -138,10 +142,10 @@ switch ($Command.ToLower())
 
         $libsSrcDir = Join-Path -Path $srcDir -ChildPath "lib"
         Write-Output "Configuring libraries..."
-        if ($Architecture.Length -gt 0)
+        if ($Arch.Length -gt 0)
         {
-            Write-Output "cmake.exe -B `"$libsBuildDir`" -S `"$libsSrcDir`" -G `"$Generator`" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$libsDir`" -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_ENABLE_WARNINGS=OFF -DLLVM_ENABLE_TERMINFO=OFF"
-            & cmake.exe -B "$libsBuildDir" -S "$libsSrcDir" -G "$Generator" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX="$libsDir" -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_ENABLE_WARNINGS=OFF -DLLVM_ENABLE_TERMINFO=OFF
+            Write-Output "cmake.exe -B `"$libsBuildDir`" -S `"$libsSrcDir`" -G `"$Generator`" -A $Arch -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$libsDir`" -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_ENABLE_WARNINGS=OFF -DLLVM_ENABLE_TERMINFO=OFF"
+            & cmake.exe -B "$libsBuildDir" -S "$libsSrcDir" -G "$Generator" -A $Arch -Thost=x64 -DCMAKE_INSTALL_PREFIX="$libsDir" -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD=X86 -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_ENABLE_WARNINGS=OFF -DLLVM_ENABLE_TERMINFO=OFF
             $err = $LastExitCode
         }
         else
@@ -170,15 +174,21 @@ switch ($Command.ToLower())
     }
     "configure"
     {
-        if ($Architecture.Length -gt 0)
+        $lto_flag = ""
+        if ($Lto)
         {
-            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$Prefix`" -DCMAKE_BUILD_TYPE=`"$Config`" -DPONYC_VERSION=`"$Version`""
-            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX="$Prefix" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" --no-warn-unused-cli
+            $lto_flag = "-DPONY_USE_LTO=true"
+        }
+
+        if ($Arch.Length -gt 0)
+        {
+            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A $Arch -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$Prefix`" -DCMAKE_BUILD_TYPE=`"$Config`" -DPONYC_VERSION=`"$Version`""
+            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A $Arch -Thost=x64 -DCMAKE_INSTALL_PREFIX="$Prefix" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" $lto_flag --no-warn-unused-cli
         }
         else
         {
             Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$Prefix`" -DCMAKE_BUILD_TYPE=`"$Config`" -DPONYC_VERSION=`"$Version`""
-            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -Thost=x64 -DCMAKE_INSTALL_PREFIX="$Prefix" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" --no-warn-unused-cli
+            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -Thost=x64 -DCMAKE_INSTALL_PREFIX="$Prefix" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" $lto_flag --no-warn-unused-cli
         }
         $err = $LastExitCode
         if ($err -ne 0) { throw "Error: exit code $err" }

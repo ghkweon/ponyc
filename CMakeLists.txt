@@ -59,7 +59,18 @@ add_compile_definitions(
     $<$<CONFIG:MinSizeRel>:PONY_VERSION_STR="${PONYC_VERSION} [minsizerel]\\nCompiled with: LLVM ${LLVM_VERSION} -- ${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION}-${CMAKE_C_COMPILER_ARCHITECTURE_ID}">
 )
 
-if (MSVC)
+include(CheckIPOSupported)
+if(PONY_USE_LTO)
+    check_ipo_supported(RESULT _ipo_supported OUTPUT error)
+endif()
+
+if(_ipo_supported)
+    message("Configuring with IPO/LTO")
+    set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    add_compile_definitions(PONY_USE_LTO)
+endif()
+
+if(MSVC)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
     # Disable some warnings for Windows, and compile Debug builds with the regular CRT.
@@ -79,7 +90,7 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11 -Werror -Wconversion -Wno-sign-conversion -Wextra -Wall -fpic -fexceptions")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fno-rtti -fpic -fexceptions")
     add_link_options(-rdynamic)
-endif (MSVC)
+endif()
 
 set(CMAKE_STATIC_LIBRARY_PREFIX "")
 

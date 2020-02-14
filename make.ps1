@@ -17,7 +17,7 @@
 
     [Parameter(HelpMessage="The location to install to")]
     [string]
-    $InstallPath = "default",
+    $Prefix = "default",
 
     [Parameter(HelpMessage="The version to use when packaging")]
     [string]
@@ -99,16 +99,16 @@ Write-Output "Libs directory:   $libsDir"
 Write-Output "Output directory: $outDir"
 Write-Output "Temp directory:   $env:TEMP"
 
-if ($InstallPath -eq "default")
+if ($Prefix -eq "default")
 {
-    $InstallPath = Join-Path -Path $srcDir -ChildPath "build\install\$config_lower"
+    $Prefix = Join-Path -Path $srcDir -ChildPath "build\install\$config_lower"
 }
-elseif (![System.IO.Path]::IsPathRooted($InstallPath))
+elseif (![System.IO.Path]::IsPathRooted($Prefix))
 {
-    $InstallPath = Join-Path -Path $srcDir -ChildPath $InstallPath
+    $Prefix = Join-Path -Path $srcDir -ChildPath $Prefix
 }
 
-Write-Output "make.ps1 $Command -Config $Config -Generator `"$Generator`" -InstallPath `"$InstallPath`" -Version `"$Version`""
+Write-Output "make.ps1 $Command -Config $Config -Generator `"$Generator`" -InstallPath `"$Prefix`" -Version `"$Version`""
 
 if (($Command.ToLower() -ne "libs") -and ($Command.ToLower() -ne "distclean") -and !(Test-Path -Path $libsDir))
 {
@@ -172,13 +172,13 @@ switch ($Command.ToLower())
     {
         if ($Architecture.Length -gt 0)
         {
-            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$InstallPath`" -DCMAKE_BUILD_TYPE=`"$Config`" -DPONYC_VERSION=`"$Version`""
-            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" --no-warn-unused-cli
+            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$Prefix`" -DCMAKE_BUILD_TYPE=`"$Config`" -DPONYC_VERSION=`"$Version`""
+            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -A $Architecture -Thost=x64 -DCMAKE_INSTALL_PREFIX="$Prefix" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" --no-warn-unused-cli
         }
         else
         {
-            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$InstallPath`" -DCMAKE_BUILD_TYPE=`"$Config`" -DPONYC_VERSION=`"$Version`""
-            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -Thost=x64 -DCMAKE_INSTALL_PREFIX="$InstallPath" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" --no-warn-unused-cli
+            Write-Output "cmake.exe -B `"$buildDir`" -S `"$srcDir`" -G `"$Generator`" -Thost=x64 -DCMAKE_INSTALL_PREFIX=`"$Prefix`" -DCMAKE_BUILD_TYPE=`"$Config`" -DPONYC_VERSION=`"$Version`""
+            & cmake.exe -B "$buildDir" -S "$srcDir" -G "$Generator" -Thost=x64 -DCMAKE_INSTALL_PREFIX="$Prefix" -DCMAKE_BUILD_TYPE="$Config" -DPONYC_VERSION="$Version" --no-warn-unused-cli
         }
         $err = $LastExitCode
         if ($err -ne 0) { throw "Error: exit code $err" }
@@ -312,10 +312,10 @@ switch ($Command.ToLower())
     }
     "package"
     {
-        $package = "ponyc-x86_64-pc-windows-msvc-$Version-$Config.zip"
+        $package = "ponyc-x86_64-pc-windows-msvc.zip"
         Write-Output "Creating $buildDir\$package"
 
-        Compress-Archive -Path "$InstallPath\ponyc", "$InstallPath\packages", "$InstallPath\examples" -DestinationPath "$buildDir\$package" -Force
+        Compress-Archive -Path "$Prefix\ponyc", "$Prefix\packages", "$Prefix\examples" -DestinationPath "$buildDir\$package" -Force
     }
     default
     {

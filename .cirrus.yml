@@ -91,13 +91,13 @@ task:
       - ps: .\make.ps1 -Command libs -Generator "Visual Studio 16 2019"
 
   config_script:
-    - ps: .\make.ps1 -Command configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version nightly
+    - ps: .\make.ps1 -Command configure -Config Release -Generator "Visual Studio 16 2019" -Prefix "build\install\release" -Version nightly
   build_script:
-    - ps: .\make.ps1 -Command build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version nightly
+    - ps: .\make.ps1 -Command build -Config Release -Generator "Visual Studio 16 2019" -Prefix "build\install\release" -Version nightly
   install_script:
-    - ps: .\make.ps1 -Command install -Config Release -InstallPath "build\install\release"
+    - ps: .\make.ps1 -Command install -Config Release -Prefix "build\install\release"
   package_script:
-    - ps: .\make.ps1 -Command package -Config Release -InstallPath "build\install\release" -Version nightly
+    - ps: .\make.ps1 -Command package -Config Release -Prefix "build\install\release" -Version nightly
   upload_script:
     - ps: $version = (Get-Date).ToString("yyyyMMdd"); cloudsmith push raw --version $version --api-key ${CLOUDSMITH_API_KEY} --summary "Pony compiler" --description "https://github.com/ponylang/ponyc" ponylang/nightlies build\ponyc-x86_64-pc-windows-msvc-nightly-$version-Release.zip
 
@@ -193,15 +193,15 @@ task:
       - ps: .\make.ps1 -Command libs -Generator "Visual Studio 16 2019"
 
   config_script:
-    - ps: .\make.ps1 -Command configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version (Get-Content .\VERSION)
+    - ps: .\make.ps1 -Command configure -Config Release -Generator "Visual Studio 16 2019" -Prefix "build\install\release" -Version (Get-Content .\VERSION)
   build_script:
-    - ps: .\make.ps1 -Command build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version (Get-Content .\VERSION)
+    - ps: .\make.ps1 -Command build -Config Release -Generator "Visual Studio 16 2019" -Prefix "build\install\release" -Version (Get-Content .\VERSION)
   install_script:
-    - ps: .\make.ps1 -Command install -Config Release -InstallPath "build\install\release"
+    - ps: .\make.ps1 -Command install -Config Release -Prefix "build\install\release"
   package_script:
-    - ps: .\make.ps1 -Command package -Config Release -InstallPath "build\install\release" -Version (Get-Content .\VERSION)
+    - ps: .\make.ps1 -Command package -Config Release -Prefix "build\install\release" -Version (Get-Content .\VERSION)
   upload_script:
-    - ps: $version = (Get-Content .\VERSION); cloudsmith push raw --version $version --api-key ${CLOUDSMITH_API_KEY} --summary "Pony compiler" --description "https://github.com/ponylang/ponyc" ponylang/releases build\ponyc-x86_64-pc-windows-msvc-$version-Release.zip
+    - ps: $version = (Get-Content .\VERSION); cloudsmith push raw --version $version --api-key ${CLOUDSMITH_API_KEY} --summary "Pony compiler" --description "https://github.com/ponylang/ponyc" ponylang/releases build\ponyc-x86_64-pc-windows-msvc.zip
 
 #
 # Pull Request Tasks
@@ -322,11 +322,11 @@ task:
       - ps: .\make.ps1 -Command libs -Generator "Visual Studio 16 2019"
 
   config_script:
-    - ps: .\make.ps1 -Command configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
+    - ps: .\make.ps1 -Command configure -Config Release -Generator "Visual Studio 16 2019" -Prefix "build\install\release"
   build_script:
-    - ps: .\make.ps1 -Command build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
+    - ps: .\make.ps1 -Command build -Config Release -Generator "Visual Studio 16 2019" -Prefix "build\install\release"
   test_script:
-    - ps: .\make.ps1 -Command test -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release"
+    - ps: .\make.ps1 -Command test -Config Release -Generator "Visual Studio 16 2019" -Prefix "build\install\release"
 
 task:
   only_if: $CIRRUS_PR != ''

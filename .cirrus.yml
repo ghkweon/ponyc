@@ -85,18 +85,19 @@ task:
 
   libs_cache:
     folder: build/libs
-    fingerprint_script: powershell.exe -NoLogo -Command "(Get-FileHash -Path lib\CMakeLists.txt).Hash"
+    fingerprint_script:
+      - ps: (Get-FileHash -Path lib\CMakeLists.txt).Hash
     populate_script:
-      - ps: .\make.ps1 libs -Generator "Visual Studio 16 2019"
+      - ps: .\make.ps1 -Command libs -Generator "Visual Studio 16 2019"
 
   config_script:
-    - ps: .\make.ps1 configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version nightly
+    - ps: .\make.ps1 -Command configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version nightly
   build_script:
-    - ps: .\make.ps1 build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version nightly
+    - ps: .\make.ps1 -Command build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version nightly
   install_script:
-    - ps: .\make.ps1 install -Config Release -InstallPath "build\install\release"
+    - ps: .\make.ps1 -Command install -Config Release -InstallPath "build\install\release"
   package_script:
-    - ps: .\make.ps1 package -Config Release -InstallPath "build\install\release" -Version nightly
+    - ps: .\make.ps1 -Command package -Config Release -InstallPath "build\install\release" -Version nightly
   upload_script:
     - ps: $version = (Get-Date).ToString("yyyyMMdd"); cloudsmith push raw --version $version --api-key ${CLOUDSMITH_API_KEY} --summary "Pony compiler" --description "https://github.com/ponylang/ponyc" ponylang/nightlies build\ponyc-x86_64-pc-windows-msvc-nightly-$version-Release.zip
 
@@ -186,14 +187,15 @@ task:
 
   libs_cache:
     folder: build/libs
-    fingerprint_script: powershell.exe -NoLogo -Command "(Get-FileHash -Path lib\CMakeLists.txt).Hash"
+    fingerprint_script:
+      - ps: (Get-FileHash -Path lib\CMakeLists.txt).Hash
     populate_script:
-      - ps: .\make.ps1 libs -Generator "Visual Studio 16 2019"
+      - ps: .\make.ps1 -Command libs -Generator "Visual Studio 16 2019"
 
   config_script:
-    - ps: .\make.ps1 configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version (Get-Content .\VERSION)
+    - ps: .\make.ps1 -Command configure -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version (Get-Content .\VERSION)
   build_script:
-    - ps: .\make.ps1 build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version (Get-Content .\VERSION)
+    - ps: .\make.ps1 -Command build -Config Release -Generator "Visual Studio 16 2019" -InstallPath "build\install\release" -Version (Get-Content .\VERSION)
   install_script:
     - ps: .\make.ps1 -Command install -Config Release -InstallPath "build\install\release"
   package_script:
@@ -314,7 +316,8 @@ task:
 
   libs_cache:
     folder: build/libs
-    fingerprint_script: powershell.exe -NoLogo -Command "(Get-FileHash -Path lib\CMakeLists.txt).Hash"
+    fingerprint_script:
+      - ps: (Get-FileHash -Path lib\CMakeLists.txt).Hash
     populate_script:
       - ps: .\make.ps1 -Command libs -Generator "Visual Studio 16 2019"
 

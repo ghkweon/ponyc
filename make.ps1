@@ -21,11 +21,11 @@
 
     [Parameter(HelpMessage="The version to use when packaging")]
     [string]
-    $Version = "default"
+    $Version = "default",
 
     [Parameter(HelpMessage="Whether or not to turn on LTO")]
-    [bool]
-    $Lto = false
+    [string]
+    $Lto = "no"
 )
 
 $srcDir = Split-Path $script:MyInvocation.MyCommand.Path
@@ -175,7 +175,7 @@ switch ($Command.ToLower())
     "configure"
     {
         $lto_flag = ""
-        if ($Lto)
+        if ($Lto -eq "yes")
         {
             $lto_flag = "-DPONY_USE_LTO=true"
         }

@@ -48,7 +48,6 @@ add_library(libponyrt STATIC
     sched/mutemap.c
     sched/scheduler.c
     sched/start.c
-    ${_ll_obj}
 )
 
 find_file(_llc_command
@@ -56,12 +55,19 @@ find_file(_llc_command
     PATHS "${CMAKE_BINARY_DIR}/../../libs/bin" "${CMAKE_BINARY_DIR}/../libs/bin"
 )
 
-add_custom_command(
-    COMMAND "${_llc_command}" ${LL_FLAGS} -relocation-model=pic -filetype=obj -o ${_ll_obj} ${_ll_src}
-    WORKING_DIRECTORY ${libponyrt_BINARY_DIR}
-    DEPENDS ${_ll_src}
-    OUTPUT ${_ll_obj}
-)
+if(PONY_RUNTIME_BITCODE)
+    message("Generating runtime bitcode")
+    target_sources(libponyrt PRIVATE ${_ll_src})
+    target_compile_options(libponyrt PRIVATE -emit-llvm)
+else()
+    target_sources(libponyrt PRIVATE ${_ll_obj})
+    add_custom_command(
+        COMMAND "${_llc_command}" ${LL_FLAGS} -relocation-model=pic -filetype=obj -o ${_ll_obj} ${_ll_src}
+        WORKING_DIRECTORY ${libponyrt_BINARY_DIR}
+        DEPENDS ${_ll_src}
+        OUTPUT ${_ll_obj}
+    )
+endif()
 
 target_include_directories(libponyrt
     PRIVATE .

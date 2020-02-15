@@ -71,6 +71,15 @@ else
 	LTO_CONFIG_FLAGS =
 endif
 
+ifeq ($(runtime-bitcode),yes)
+	ifeq (,$(shell $(CC) -v 2>&1 | grep clang))
+		$(error Compiling the runtime as a bitcode file requires clang)
+	endif
+	BITCODE_FLAGS = -DPONY_RUNTIME_BITCODE=true
+else
+	BITCODE_FLAGS =
+endif
+
 .DEFAULT_GOAL := build
 .PHONY: all libs cleanlibs configure cross-configure build test test-ci test-check-version test-core test-stdlib-debug test-stdlib-release test-examples test-validate-grammar clean
 
@@ -85,7 +94,7 @@ cleanlibs:
 
 configure:
 	$(SILENT)mkdir -p '$(buildDir)'
-	$(SILENT)cd '$(buildDir)' && CC="$(CC)" CXX="$(CXX)" cmake -B '$(buildDir)' -S '$(srcDir)' -DCMAKE_BUILD_TYPE=$(config) -DCMAKE_C_FLAGS="-march=$(arch) -mtune=$(tune)" -DCMAKE_CXX_FLAGS="-march=$(arch) -mtune=$(tune)" $(LTO_CONFIG_FLAGS) $(CMAKE_VERBOSE_FLAGS)
+	$(SILENT)cd '$(buildDir)' && CC="$(CC)" CXX="$(CXX)" cmake -B '$(buildDir)' -S '$(srcDir)' -DCMAKE_BUILD_TYPE=$(config) -DCMAKE_C_FLAGS="-march=$(arch) -mtune=$(tune)" -DCMAKE_CXX_FLAGS="-march=$(arch) -mtune=$(tune)" $(BITCODE_FLAGS) $(LTO_CONFIG_FLAGS) $(CMAKE_VERBOSE_FLAGS)
 
 all: build
 
